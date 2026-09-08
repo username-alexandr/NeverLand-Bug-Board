@@ -1,4 +1,4 @@
 window.NEVERLAND_BUGS_CONFIG = {
-  supabaseUrl: "YOUR_SUPABASE_URL",
-  supabaseAnonKey: "YOUR_SUPABASE_ANON_KEY"
+  supabaseUrl: "https://tlrncydsgydyjarikbal.supabase.co",
+  supabaseAnonKey: "sb_publishable_BPjn9FNwA3zZDEYkUhLt2w_ML9Dq7rH"
 };
