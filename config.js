@@ -6,54 +6,73 @@ window.NEVERLAND_BUGS_CONFIG = {
 (() => {
   const params = new URLSearchParams(window.location.search);
   const adminRoute = params.get('admin') === '1';
-  const logoUrl = new URL('neverland-logo.webp', document.baseURI).href;
+  const logoPayloadUrl = new URL('neverland-logo-128.png.b64.txt', document.baseURI).href;
+  let logoDataUrl = null;
 
-  // Фирменный логотип NeverLand в шапке и как favicon.
+  async function loadLogoDataUrl() {
+    if (logoDataUrl) return logoDataUrl;
+    const response = await fetch(logoPayloadUrl, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Не удалось загрузить логотип');
+    const base64 = (await response.text()).trim();
+    logoDataUrl = `data:image/png;base64,${base64}`;
+    return logoDataUrl;
+  }
+
+  // Логотип без фоновой плитки — только сама эмблема и её свечение.
   const brandStyle = document.createElement('style');
   brandStyle.textContent = `
     .logo{
-      width:58px!important;
-      height:58px!important;
+      width:68px!important;
+      height:68px!important;
       padding:0!important;
-      border-radius:18px!important;
+      border-radius:0!important;
       background:none!important;
-      box-shadow:0 0 28px rgba(157,92,255,.24)!important;
-      overflow:hidden!important;
-      display:block!important;
-      flex:0 0 58px;
+      box-shadow:none!important;
+      overflow:visible!important;
+      display:grid!important;
+      place-items:center!important;
+      flex:0 0 68px;
     }
     .logo img{
-      width:100%;
-      height:100%;
+      width:68px;
+      height:68px;
       display:block;
-      object-fit:cover;
-      border-radius:18px;
+      object-fit:contain;
+      border-radius:0;
+      filter:drop-shadow(0 0 10px rgba(157,92,255,.32)) drop-shadow(0 0 7px rgba(87,230,219,.16));
     }
   `;
   document.head.appendChild(brandStyle);
 
-  const favicon = document.createElement('link');
-  favicon.rel = 'icon';
-  favicon.type = 'image/webp';
-  favicon.href = logoUrl;
-  document.head.appendChild(favicon);
-
   // На обычной публичной странице кнопка администратора вообще не показывается.
-  // CSS добавляется в <head> до отрисовки body, поэтому кнопка не мигает при загрузке.
   if (!adminRoute) {
     const style = document.createElement('style');
     style.textContent = '#adminBtn{display:none!important}';
     document.head.appendChild(style);
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const logo = document.querySelector('.logo');
-    if (logo) {
-      logo.textContent = '';
-      const image = document.createElement('img');
-      image.src = logoUrl;
-      image.alt = 'NeverLand';
-      logo.appendChild(image);
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const loadedLogo = await loadLogoDataUrl();
+      const logo = document.querySelector('.logo');
+      if (logo) {
+        logo.textContent = '';
+        const image = document.createElement('img');
+        image.src = loadedLogo;
+        image.alt = 'NeverLand';
+        logo.appendChild(image);
+      }
+
+      let favicon = document.querySelector('link[rel="icon"]');
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        document.head.appendChild(favicon);
+      }
+      favicon.type = 'image/png';
+      favicon.href = loadedLogo;
+    } catch (error) {
+      console.error(error);
     }
 
     const adminBtn = document.getElementById('adminBtn');
@@ -132,7 +151,7 @@ window.NEVERLAND_BUGS_CONFIG = {
         return;
       }
 
-      // Регистрация не даёт админ-права автоматически — это намеренно.
+      // Регистрация сама по себе не выдаёт админ-права.
       if (signUpData?.session) await client.auth.signOut();
       form.reset();
       message.style.color = '#a8efc0';
