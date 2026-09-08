@@ -6,15 +6,16 @@ window.NEVERLAND_BUGS_CONFIG = {
 (() => {
   const params = new URLSearchParams(window.location.search);
   const adminRoute = params.get('admin') === '1';
-  const logoUrl = new URL('neverland-logo-header.png?v=14', document.baseURI).href;
+  const logoUrl = new URL('neverland-logo-header.png?v=15', document.baseURI).href;
+  const faviconUrl = new URL('favicon.svg?v=15', document.baseURI).href;
 
-  // Полная фирменная эмблема без обрезания и без фоновой плитки.
+  // Увеличиваем именно видимую эмблему внутри исходного PNG, не ухудшая качество.
   const brandStyle = document.createElement('style');
   brandStyle.textContent = `
-    .brand{gap:16px!important;align-items:center!important;}
+    .brand{gap:28px!important;align-items:center!important;}
     .logo{
-      width:104px!important;
-      height:104px!important;
+      width:116px!important;
+      height:116px!important;
       padding:0!important;
       border-radius:0!important;
       background:none!important;
@@ -22,40 +23,44 @@ window.NEVERLAND_BUGS_CONFIG = {
       overflow:visible!important;
       display:grid!important;
       place-items:center!important;
-      flex:0 0 104px;
+      flex:0 0 116px;
     }
     .logo img{
-      width:104px;
-      height:104px;
+      width:116px;
+      height:116px;
       display:block;
       object-fit:contain;
       border-radius:0;
-      filter:drop-shadow(0 0 12px rgba(157,92,255,.24)) drop-shadow(0 0 7px rgba(87,230,219,.12));
+      transform:scale(1.82);
+      transform-origin:center;
+      image-rendering:auto;
+      filter:drop-shadow(0 0 12px rgba(157,92,255,.22)) drop-shadow(0 0 7px rgba(87,230,219,.11));
     }
     @media(max-width:620px){
+      .brand{gap:20px!important;}
       .logo{
-        width:82px!important;
-        height:82px!important;
-        flex-basis:82px;
+        width:88px!important;
+        height:88px!important;
+        flex-basis:88px;
       }
       .logo img{
-        width:82px;
-        height:82px;
+        width:88px;
+        height:88px;
+        transform:scale(1.75);
       }
     }
   `;
   document.head.appendChild(brandStyle);
 
-  // Реальный PNG favicon вместо динамического data: URL.
+  // Отдельный favicon с более плотным кадрированием, чтобы он читался в 16×16 px.
   let favicon = document.querySelector('link[rel="icon"]');
   if (!favicon) {
     favicon = document.createElement('link');
     favicon.rel = 'icon';
     document.head.appendChild(favicon);
   }
-  favicon.type = 'image/png';
-  favicon.sizes = '128x128';
-  favicon.href = logoUrl;
+  favicon.type = 'image/svg+xml';
+  favicon.href = faviconUrl;
 
   let shortcut = document.querySelector('link[rel="shortcut icon"]');
   if (!shortcut) {
@@ -63,8 +68,8 @@ window.NEVERLAND_BUGS_CONFIG = {
     shortcut.rel = 'shortcut icon';
     document.head.appendChild(shortcut);
   }
-  shortcut.type = 'image/png';
-  shortcut.href = logoUrl;
+  shortcut.type = 'image/svg+xml';
+  shortcut.href = faviconUrl;
 
   // На обычной публичной странице кнопка администратора не показывается.
   if (!adminRoute) {
@@ -80,8 +85,8 @@ window.NEVERLAND_BUGS_CONFIG = {
       const image = document.createElement('img');
       image.src = logoUrl;
       image.alt = 'NeverLand';
-      image.width = 104;
-      image.height = 104;
+      image.width = 116;
+      image.height = 116;
       logo.appendChild(image);
     }
 
