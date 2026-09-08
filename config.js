@@ -6,6 +6,37 @@ window.NEVERLAND_BUGS_CONFIG = {
 (() => {
   const params = new URLSearchParams(window.location.search);
   const adminRoute = params.get('admin') === '1';
+  const logoUrl = new URL('neverland-logo.webp', document.baseURI).href;
+
+  // Фирменный логотип NeverLand в шапке и как favicon.
+  const brandStyle = document.createElement('style');
+  brandStyle.textContent = `
+    .logo{
+      width:58px!important;
+      height:58px!important;
+      padding:0!important;
+      border-radius:18px!important;
+      background:none!important;
+      box-shadow:0 0 28px rgba(157,92,255,.24)!important;
+      overflow:hidden!important;
+      display:block!important;
+      flex:0 0 58px;
+    }
+    .logo img{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:cover;
+      border-radius:18px;
+    }
+  `;
+  document.head.appendChild(brandStyle);
+
+  const favicon = document.createElement('link');
+  favicon.rel = 'icon';
+  favicon.type = 'image/webp';
+  favicon.href = logoUrl;
+  document.head.appendChild(favicon);
 
   // На обычной публичной странице кнопка администратора вообще не показывается.
   // CSS добавляется в <head> до отрисовки body, поэтому кнопка не мигает при загрузке.
@@ -16,6 +47,15 @@ window.NEVERLAND_BUGS_CONFIG = {
   }
 
   window.addEventListener('DOMContentLoaded', () => {
+    const logo = document.querySelector('.logo');
+    if (logo) {
+      logo.textContent = '';
+      const image = document.createElement('img');
+      image.src = logoUrl;
+      image.alt = 'NeverLand';
+      logo.appendChild(image);
+    }
+
     const adminBtn = document.getElementById('adminBtn');
     const adminModal = document.getElementById('adminModal');
     const loginForm = document.getElementById('loginForm');
