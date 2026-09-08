@@ -18,12 +18,13 @@ window.NEVERLAND_BUGS_CONFIG = {
     return logoDataUrl;
   }
 
-  // Логотип без фоновой плитки — только сама эмблема и её свечение.
+  // Крупный фирменный логотип без фоновой плитки.
   const brandStyle = document.createElement('style');
   brandStyle.textContent = `
+    .brand{gap:18px!important;}
     .logo{
-      width:68px!important;
-      height:68px!important;
+      width:124px!important;
+      height:124px!important;
       padding:0!important;
       border-radius:0!important;
       background:none!important;
@@ -31,15 +32,26 @@ window.NEVERLAND_BUGS_CONFIG = {
       overflow:visible!important;
       display:grid!important;
       place-items:center!important;
-      flex:0 0 68px;
+      flex:0 0 124px;
     }
     .logo img{
-      width:68px;
-      height:68px;
+      width:124px;
+      height:124px;
       display:block;
       object-fit:contain;
       border-radius:0;
-      filter:drop-shadow(0 0 10px rgba(157,92,255,.32)) drop-shadow(0 0 7px rgba(87,230,219,.16));
+      filter:drop-shadow(0 0 14px rgba(157,92,255,.28)) drop-shadow(0 0 9px rgba(87,230,219,.14));
+    }
+    @media(max-width:620px){
+      .logo{
+        width:92px!important;
+        height:92px!important;
+        flex-basis:92px;
+      }
+      .logo img{
+        width:92px;
+        height:92px;
+      }
     }
   `;
   document.head.appendChild(brandStyle);
