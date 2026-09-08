@@ -7,7 +7,7 @@ window.NEVERLAND_BUGS_CONFIG = {
   const params = new URLSearchParams(window.location.search);
   const adminRoute = params.get('admin') === '1';
   const logoUrl = new URL('neverland-logo-header.png?v=15', document.baseURI).href;
-  const faviconUrl = new URL('favicon.svg?v=15', document.baseURI).href;
+  const faviconUrl = new URL('favicon.svg?v=16', document.baseURI).href;
 
   // Увеличиваем именно видимую эмблему внутри исходного PNG, не ухудшая качество.
   const brandStyle = document.createElement('style');
