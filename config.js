@@ -6,10 +6,20 @@ window.NEVERLAND_BUGS_CONFIG = {
 (() => {
   const params = new URLSearchParams(window.location.search);
   const adminRoute = params.get('admin') === '1';
-  const logoUrl = new URL('neverland-logo-header.png?v=15', document.baseURI).href;
+  const logoPayloadUrl = new URL('neverland-logo-header-crisp.b64.txt?v=17', document.baseURI).href;
   const faviconUrl = new URL('favicon.svg?v=16', document.baseURI).href;
+  let logoDataUrl = null;
 
-  // Увеличиваем именно видимую эмблему внутри исходного PNG, не ухудшая качество.
+  async function loadLogoDataUrl() {
+    if (logoDataUrl) return logoDataUrl;
+    const response = await fetch(logoPayloadUrl, { cache: 'no-store' });
+    if (!response.ok) throw new Error('Не удалось загрузить HQ-логотип');
+    const base64 = (await response.text()).trim();
+    logoDataUrl = `data:image/png;base64,${base64}`;
+    return logoDataUrl;
+  }
+
+  // HQ-логотип 384×384: отображаем без CSS-растяжения, чтобы сохранить резкость.
   const brandStyle = document.createElement('style');
   brandStyle.textContent = `
     .brand{gap:28px!important;align-items:center!important;}
@@ -31,10 +41,9 @@ window.NEVERLAND_BUGS_CONFIG = {
       display:block;
       object-fit:contain;
       border-radius:0;
-      transform:scale(1.82);
-      transform-origin:center;
+      transform:none!important;
       image-rendering:auto;
-      filter:drop-shadow(0 0 12px rgba(157,92,255,.22)) drop-shadow(0 0 7px rgba(87,230,219,.11));
+      filter:drop-shadow(0 0 8px rgba(157,92,255,.16)) drop-shadow(0 0 5px rgba(87,230,219,.08));
     }
     @media(max-width:620px){
       .brand{gap:20px!important;}
@@ -46,13 +55,13 @@ window.NEVERLAND_BUGS_CONFIG = {
       .logo img{
         width:88px;
         height:88px;
-        transform:scale(1.75);
+        transform:none!important;
       }
     }
   `;
   document.head.appendChild(brandStyle);
 
-  // Отдельный favicon с более плотным кадрированием, чтобы он читался в 16×16 px.
+  // Favicon оставляем отдельным — он уже корректно отображается во вкладке.
   let favicon = document.querySelector('link[rel="icon"]');
   if (!favicon) {
     favicon = document.createElement('link');
@@ -78,16 +87,21 @@ window.NEVERLAND_BUGS_CONFIG = {
     document.head.appendChild(style);
   }
 
-  window.addEventListener('DOMContentLoaded', () => {
-    const logo = document.querySelector('.logo');
-    if (logo) {
-      logo.textContent = '';
-      const image = document.createElement('img');
-      image.src = logoUrl;
-      image.alt = 'NeverLand';
-      image.width = 116;
-      image.height = 116;
-      logo.appendChild(image);
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const loadedLogo = await loadLogoDataUrl();
+      const logo = document.querySelector('.logo');
+      if (logo) {
+        logo.textContent = '';
+        const image = document.createElement('img');
+        image.src = loadedLogo;
+        image.alt = 'NeverLand';
+        image.width = 116;
+        image.height = 116;
+        logo.appendChild(image);
+      }
+    } catch (error) {
+      console.error(error);
     }
 
     const adminBtn = document.getElementById('adminBtn');
