@@ -6,7 +6,7 @@ window.NEVERLAND_BUGS_CONFIG = {
 (() => {
   const params = new URLSearchParams(window.location.search);
   const adminRoute = params.get('admin') === '1';
-  const logoPayloadUrl = new URL('neverland-logo-header-crisp.b64.txt?v=17', document.baseURI).href;
+  const logoPayloadUrl = new URL('neverland-logo-header-crisp.b64.txt?v=18', document.baseURI).href;
   const faviconUrl = new URL('favicon.svg?v=16', document.baseURI).href;
   let logoDataUrl = null;
 
@@ -15,11 +15,28 @@ window.NEVERLAND_BUGS_CONFIG = {
     const response = await fetch(logoPayloadUrl, { cache: 'no-store' });
     if (!response.ok) throw new Error('Не удалось загрузить HQ-логотип');
     const base64 = (await response.text()).trim();
+    if (!base64) throw new Error('HQ-логотип пуст');
     logoDataUrl = `data:image/png;base64,${base64}`;
     return logoDataUrl;
   }
 
-  // HQ-логотип 384×384: отображаем без CSS-растяжения, чтобы сохранить резкость.
+  function ensureHeaderLogo(src) {
+    const logo = document.querySelector('.logo');
+    if (!logo) return null;
+    logo.textContent = '';
+    let image = logo.querySelector('img');
+    if (!image) {
+      image = document.createElement('img');
+      image.alt = 'NeverLand';
+      image.width = 116;
+      image.height = 116;
+      logo.appendChild(image);
+    }
+    image.src = src;
+    return image;
+  }
+
+  // HQ-логотип отображается без CSS-растяжения.
   const brandStyle = document.createElement('style');
   brandStyle.textContent = `
     .brand{gap:28px!important;align-items:center!important;}
@@ -36,15 +53,33 @@ window.NEVERLAND_BUGS_CONFIG = {
       flex:0 0 116px;
     }
     .logo img{
-      width:116px;
-      height:116px;
-      display:block;
-      object-fit:contain;
-      border-radius:0;
+      width:116px!important;
+      height:116px!important;
+      display:block!important;
+      object-fit:contain!important;
+      border-radius:0!important;
       transform:none!important;
-      image-rendering:auto;
+      image-rendering:auto!important;
       filter:drop-shadow(0 0 8px rgba(157,92,255,.16)) drop-shadow(0 0 5px rgba(87,230,219,.08));
     }
+    .admin-login-brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin:0 0 18px;
+      padding:10px 12px;
+      border:1px solid #2a2940;
+      border-radius:14px;
+      background:rgba(157,92,255,.045);
+    }
+    .admin-login-brand img{
+      width:54px;
+      height:54px;
+      object-fit:contain;
+      flex:0 0 54px;
+    }
+    .admin-login-brand strong{display:block;font-size:15px;}
+    .admin-login-brand span{display:block;color:#a9a5bd;font-size:12px;margin-top:2px;}
     @media(max-width:620px){
       .brand{gap:20px!important;}
       .logo{
@@ -53,15 +88,14 @@ window.NEVERLAND_BUGS_CONFIG = {
         flex-basis:88px;
       }
       .logo img{
-        width:88px;
-        height:88px;
-        transform:none!important;
+        width:88px!important;
+        height:88px!important;
       }
     }
   `;
   document.head.appendChild(brandStyle);
 
-  // Favicon оставляем отдельным — он уже корректно отображается во вкладке.
+  // Favicon уже работает корректно и одновременно служит надёжным fallback для логотипа.
   let favicon = document.querySelector('link[rel="icon"]');
   if (!favicon) {
     favicon = document.createElement('link');
@@ -80,7 +114,6 @@ window.NEVERLAND_BUGS_CONFIG = {
   shortcut.type = 'image/svg+xml';
   shortcut.href = faviconUrl;
 
-  // На обычной публичной странице кнопка администратора не показывается.
   if (!adminRoute) {
     const style = document.createElement('style');
     style.textContent = '#adminBtn{display:none!important}';
@@ -88,20 +121,15 @@ window.NEVERLAND_BUGS_CONFIG = {
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
+    // Никогда не оставляем старый текстовый NL или broken image: сразу ставим рабочий fallback.
+    const headerImage = ensureHeaderLogo(faviconUrl);
+    let loadedLogo = null;
     try {
-      const loadedLogo = await loadLogoDataUrl();
-      const logo = document.querySelector('.logo');
-      if (logo) {
-        logo.textContent = '';
-        const image = document.createElement('img');
-        image.src = loadedLogo;
-        image.alt = 'NeverLand';
-        image.width = 116;
-        image.height = 116;
-        logo.appendChild(image);
-      }
+      loadedLogo = await loadLogoDataUrl();
+      if (headerImage) headerImage.src = loadedLogo;
     } catch (error) {
       console.error(error);
+      if (headerImage) headerImage.src = faviconUrl;
     }
 
     const adminBtn = document.getElementById('adminBtn');
@@ -116,6 +144,18 @@ window.NEVERLAND_BUGS_CONFIG = {
     if (adminBtn) {
       adminBtn.style.display = '';
       if (adminBtn.textContent.trim() === 'Админ') adminBtn.textContent = 'Вход администратора';
+    }
+
+    // Фирменный блок в окне входа. Использует тот же HQ-логотип, а при ошибке — рабочий favicon.
+    if (adminModal && !adminModal.querySelector('.admin-login-brand')) {
+      const dialog = adminModal.querySelector('.dialog');
+      const head = adminModal.querySelector('.dialog-head');
+      if (dialog && head) {
+        const brand = document.createElement('div');
+        brand.className = 'admin-login-brand';
+        brand.innerHTML = `<img alt="NeverLand" src="${loadedLogo || faviconUrl}"><div><strong>NeverLand Bug Board</strong><span>Панель администратора</span></div>`;
+        head.insertAdjacentElement('afterend', brand);
+      }
     }
 
     if (!adminModal || !loginForm || document.getElementById('adminRegisterBlock')) return;
