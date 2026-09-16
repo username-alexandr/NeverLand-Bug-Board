@@ -6,33 +6,21 @@ window.NEVERLAND_BUGS_CONFIG = {
 (() => {
   const params = new URLSearchParams(window.location.search);
   const adminRoute = params.get('admin') === '1';
-  const logoPayloadUrl = new URL('neverland-logo-header-crisp.b64.txt?v=18', document.baseURI).href;
+  const logoUrl = new URL('neverland-logo-header.png?v=19', document.baseURI).href;
   const faviconUrl = new URL('favicon.svg?v=16', document.baseURI).href;
-  let logoDataUrl = null;
 
-  async function loadLogoDataUrl() {
-    if (logoDataUrl) return logoDataUrl;
-    const response = await fetch(logoPayloadUrl, { cache: 'no-store' });
-    if (!response.ok) throw new Error('Не удалось загрузить HQ-логотип');
-    const base64 = (await response.text()).trim();
-    if (!base64) throw new Error('HQ-логотип пуст');
-    logoDataUrl = `data:image/png;base64,${base64}`;
-    return logoDataUrl;
-  }
-
-  function ensureHeaderLogo(src) {
+  function ensureHeaderLogo() {
     const logo = document.querySelector('.logo');
     if (!logo) return null;
     logo.textContent = '';
-    let image = logo.querySelector('img');
-    if (!image) {
-      image = document.createElement('img');
-      image.alt = 'NeverLand';
-      image.width = 116;
-      image.height = 116;
-      logo.appendChild(image);
-    }
-    image.src = src;
+    const image = document.createElement('img');
+    image.src = logoUrl;
+    image.alt = 'NeverLand';
+    image.width = 116;
+    image.height = 116;
+    image.decoding = 'async';
+    image.loading = 'eager';
+    logo.appendChild(image);
     return image;
   }
 
@@ -118,16 +106,8 @@ window.NEVERLAND_BUGS_CONFIG = {
     document.head.appendChild(style);
   }
 
-  window.addEventListener('DOMContentLoaded', async () => {
-    const headerImage = ensureHeaderLogo(faviconUrl);
-    let loadedLogo = null;
-    try {
-      loadedLogo = await loadLogoDataUrl();
-      if (headerImage) headerImage.src = loadedLogo;
-    } catch (error) {
-      console.error(error);
-      if (headerImage) headerImage.src = faviconUrl;
-    }
+  window.addEventListener('DOMContentLoaded', () => {
+    ensureHeaderLogo();
 
     const adminBtn = document.getElementById('adminBtn');
     const adminModal = document.getElementById('adminModal');
@@ -149,7 +129,7 @@ window.NEVERLAND_BUGS_CONFIG = {
       if (dialog && head) {
         const brand = document.createElement('div');
         brand.className = 'admin-login-brand';
-        brand.innerHTML = `<img alt="NeverLand" src="${loadedLogo || faviconUrl}"><div><strong>NeverLand Bug Board</strong><span>Панель администратора</span></div>`;
+        brand.innerHTML = `<img alt="NeverLand" src="${logoUrl}"><div><strong>NeverLand Bug Board</strong><span>Панель администратора</span></div>`;
         head.insertAdjacentElement('afterend', brand);
       }
     }
