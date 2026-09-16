@@ -36,7 +36,6 @@ window.NEVERLAND_BUGS_CONFIG = {
     return image;
   }
 
-  // HQ-логотип отображается без CSS-растяжения.
   const brandStyle = document.createElement('style');
   brandStyle.textContent = `
     .brand{gap:28px!important;align-items:center!important;}
@@ -95,7 +94,6 @@ window.NEVERLAND_BUGS_CONFIG = {
   `;
   document.head.appendChild(brandStyle);
 
-  // Favicon уже работает корректно и одновременно служит надёжным fallback для логотипа.
   let favicon = document.querySelector('link[rel="icon"]');
   if (!favicon) {
     favicon = document.createElement('link');
@@ -121,7 +119,6 @@ window.NEVERLAND_BUGS_CONFIG = {
   }
 
   window.addEventListener('DOMContentLoaded', async () => {
-    // Никогда не оставляем старый текстовый NL или broken image: сразу ставим рабочий fallback.
     const headerImage = ensureHeaderLogo(faviconUrl);
     let loadedLogo = null;
     try {
@@ -146,7 +143,6 @@ window.NEVERLAND_BUGS_CONFIG = {
       if (adminBtn.textContent.trim() === 'Админ') adminBtn.textContent = 'Вход администратора';
     }
 
-    // Фирменный блок в окне входа. Использует тот же HQ-логотип, а при ошибке — рабочий favicon.
     if (adminModal && !adminModal.querySelector('.admin-login-brand')) {
       const dialog = adminModal.querySelector('.dialog');
       const head = adminModal.querySelector('.dialog-head');
@@ -227,3 +223,10 @@ window.NEVERLAND_BUGS_CONFIG = {
     });
   });
 })();
+
+if (new URLSearchParams(window.location.search).get('admin') === '1') {
+  const adminDeleteScript = document.createElement('script');
+  adminDeleteScript.src = new URL('admin-delete.js?v=1', document.baseURI).href;
+  adminDeleteScript.async = true;
+  document.head.appendChild(adminDeleteScript);
+}
