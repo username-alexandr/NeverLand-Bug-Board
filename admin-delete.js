@@ -2,7 +2,7 @@
   const params = new URLSearchParams(window.location.search);
   if (params.get('admin') !== '1') return;
 
-  window.addEventListener('DOMContentLoaded', () => {
+  const init = () => {
     const cfg = window.NEVERLAND_BUGS_CONFIG;
     if (!window.supabase || !cfg?.supabaseUrl || !cfg?.supabaseAnonKey) return;
 
@@ -107,5 +107,11 @@
     });
 
     refreshAdminAccess();
-  });
+  };
+
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
 })();
